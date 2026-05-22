@@ -104,8 +104,9 @@ if selected_years and selected_months:
 total_revenue = df_filtered["sale_price"].sum()
 total_customer = df_filtered["user_id"].nunique()
 total_orders = df_filtered["transaksi_id"].count()
+top_traffic = df_filtered["traffic_source"].value_counts().idxmax()
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric("Total Revenue", f"${total_revenue:,.0f}")
@@ -113,6 +114,8 @@ with col2:
     st.metric("Total Customer", f"{total_customer:,}")
 with col3:
     st.metric("Total Orders", f"{total_orders:,}")
+with col4:
+    st.metric("Top Traffic Source", top_traffic)
 
 # =====================================================
 # BAR CHART + PIE CHART
