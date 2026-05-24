@@ -290,18 +290,34 @@ customer_cluster["cluster"] = kmeans.fit_predict(
 )
 
 # =====================================================
-# RENAME CLUSTER
+# CLUSTER RANKING BERDASARKAN SPENDING
 # =====================================================
 
+cluster_rank = (
+
+    customer_cluster.groupby("cluster")["total_spent"]
+
+    .mean()
+
+    .sort_values()
+
+    .reset_index()
+
+)
+
+# urutan cluster dari spending terkecil → terbesar
+sorted_clusters = cluster_rank["cluster"].tolist()
+
+# mapping otomatis
 cluster_labels = {
 
-    0: "Low-Medium Value",
+    sorted_clusters[0]: "Low Value",
 
-    1: "Active Customer",
+    sorted_clusters[1]: "Low-Medium Value",
 
-    2: "Low Value",
+    sorted_clusters[2]: "Active Customer",
 
-    3: "High Value"
+    sorted_clusters[3]: "High Value"
 
 }
 
