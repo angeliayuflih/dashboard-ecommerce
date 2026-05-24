@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 # =====================================================
 # PAGE CONFIG
@@ -216,5 +218,157 @@ else:
         markers=True,
         title=f"Trend Revenue Kategori: {selected_category}"
     )
+
+
+# =====================================================
+# CUSTOMER SEGMENTATION (K-MEANS)
+# =====================================================
+st.subheader("Customer Segmentation")
+
+# =====================================================
+# CUSTOMER SUMMARY
+# =====================================================
+
+customer_cluster = (
+
+    df_filtered.groupby("user_id")
+
+    .agg({
+
+        "transaksi_id":"count",
+
+        "sale_price":"sum"
+
+    })
+
+    .reset_index()
+
+)
+
+customer_cluster.columns = [
+
+    "user_id",
+
+    "total_transaction",
+
+    "total_spent"
+
+]
+
+# =====================================================
+# SCALING
+# =====================================================
+
+scaler = StandardScaler()
+
+scaled_data = scaler.fit_transform(
+
+    customer_cluster[[
+
+        "total_transaction",
+
+        "total_spent"
+
+    ]]
+
+)
+
+# =====================================================
+# KMEANS
+# =====================================================
+
+kmeans = KMeans(
+
+    n_clusters=4,
+
+    random_state=42
+
+)
+
+customer_cluster["cluster"] = kmeans.fit_predict(
+    scaled_data
+)
+
+# =====================================================
+# RENAME CLUSTER
+# =====================================================
+
+cluster_labels = {
+
+    0: "Low-Medium Value",
+
+    1: "Active Customer",
+
+    2: "Low Value",
+
+    3: "High Value"
+
+}
+
+customer_cluster["cluster_name"] = customer_cluster[
+    "cluster"
+].map(cluster_labels)
+
+# =====================================================
+# SCATTER PLOT
+# =====================================================
+
+fig_cluster = px.scatter(
+
+    customer_cluster,
+
+    x="total_transaction",
+
+    y="total_spent",
+
+    color="cluster_name",
+
+    hover_data=["user_id"],
+
+    title="Customer Segmentation"
+
+)
+
+st.plotly_chart(
+    fig_cluster,
+    use_container_width=True
+)
+
+# =====================================================
+# CLUSTER SUMMARY
+# =====================================================
+
+cluster_summary = (
+
+    customer_cluster.groupby("cluster_name")[
+
+        ["total_transaction", "total_spent"]
+
+    ]
+
+    .mean()
+
+    .reset_index()
+
+)
+
+st.subheader("Ringkasan Cluster")
+
+st.dataframe(cluster_summary)
+
+# =====================================================
+# CLUSTER DESCRIPTION
+# =====================================================
+
+st.markdown("""
+
+### Keterangan Cluster
+
+- **Low Value** → Customer sangat pasif dengan transaksi dan spending paling rendah.
+- **Low-Medium Value** → Customer dengan transaksi rendah hingga menengah.
+- **Active Customer** → Customer cukup aktif dengan frekuensi transaksi sedang.
+- **High Value** → Customer loyal dengan transaksi dan spending tertinggi.
+
+""")
     st.plotly_chart(fig_line_category, use_container_width=True)
 
