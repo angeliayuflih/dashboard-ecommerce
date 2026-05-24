@@ -370,5 +370,3 @@ st.markdown("""
 - **High Value** → Customer loyal dengan transaksi dan spending tertinggi.
 
 """)
-    st.plotly_chart(fig_line_category, use_container_width=True)
-
